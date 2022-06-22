@@ -33,7 +33,7 @@ Steps to build:
 2. Run `./gradlew build` in the cloned repository
 3. copy *.aar and gdap files
 ```bash
-cp app/build/outputs/aar/GooglePlayGamesServices-release.aar ${YOUR_PROJECT}/android/plugin/
+cp GooglePlayGamesServices/build/outputs/aar/GooglePlayGamesServices-release.aar ${YOUR_PROJECT}/android/plugin/
 cp GooglePlayGamesServices.gdap ${YOUR_PROJECT}/android/plugin
 ```
 

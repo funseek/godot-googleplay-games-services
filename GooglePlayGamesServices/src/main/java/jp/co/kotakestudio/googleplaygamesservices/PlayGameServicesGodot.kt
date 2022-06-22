@@ -46,42 +46,43 @@ class PlayGameServicesGodot(godot: Godot?) : GodotPlugin(godot) {
     }
 
     fun signIn() {
-        val gamesSignInClient = PlayGames.getGamesSignInClient(activity!!)
-
-        gamesSignInClient.isAuthenticated.addOnCompleteListener { isAuthenticatedTask: Task<AuthenticationResult> ->
-            val isAuthenticated =
-                isAuthenticatedTask.isSuccessful && isAuthenticatedTask.result.isAuthenticated
-            if (isAuthenticated) {
-                Log.i(TAG, "isAuthenticated successful")
-                // Continue with Play Games Services
-                PlayGames.getPlayersClient(activity!!).getCurrentPlayer()
-                    .addOnCompleteListener {
-                        Log.i(
-                            TAG,
-                            "getCurrentPlayer successful playerId: ${it.result.playerId}"
-                        )
-                        this.onSignInSuccess(it.result.playerId)
-                    }
-            } else {
-                // Disable your integration with Play Games Services or show a
-                // login button to ask  players to sign-in. Clicking it should
-                // call GamesSignInClient.signIn().
-                Log.i(TAG, "isAuthenticated failed")
-                gamesSignInClient.signIn().addOnCompleteListener {
-                    val isAuthenticated = it.isSuccessful && it.result.isAuthenticated
-                    if (isAuthenticated) {
-                        // Continue with Play Games Services
-                        PlayGames.getPlayersClient(activity!!).getCurrentPlayer()
-                            .addOnCompleteListener { task: Task<Player> ->
-                                Log.i(
-                                    TAG,
-                                    "getCurrentPlayer successful playerId: ${task.result.playerId}"
-                                )
-                                this.onSignInSuccess(task.result.playerId)
-                            }
-                    } else {
-                        Log.i(TAG, "isAuthenticated failed")
-                        emitSignal(SIGNAL_SIGN_IN_FAILED.name)
+        runOnUiThread {
+            val gamesSignInClient = PlayGames.getGamesSignInClient(activity!!)
+            gamesSignInClient.isAuthenticated.addOnCompleteListener { isAuthenticatedTask: Task<AuthenticationResult> ->
+                val isAuthenticated =
+                    isAuthenticatedTask.isSuccessful && isAuthenticatedTask.result.isAuthenticated
+                if (isAuthenticated) {
+                    Log.i(TAG, "isAuthenticated successful")
+                    // Continue with Play Games Services
+                    PlayGames.getPlayersClient(activity!!).getCurrentPlayer()
+                        .addOnCompleteListener {
+                            Log.i(
+                                TAG,
+                                "getCurrentPlayer successful playerId: ${it.result.playerId}"
+                            )
+                            this.onSignInSuccess(it.result.playerId)
+                        }
+                } else {
+                    // Disable your integration with Play Games Services or show a
+                    // login button to ask  players to sign-in. Clicking it should
+                    // call GamesSignInClient.signIn().
+                    Log.i(TAG, "isAuthenticated failed")
+                    gamesSignInClient.signIn().addOnCompleteListener {
+                        val isReAuthenticated = it.isSuccessful && it.result.isAuthenticated
+                        if (isReAuthenticated) {
+                            // Continue with Play Games Services
+                            PlayGames.getPlayersClient(activity!!).getCurrentPlayer()
+                                .addOnCompleteListener { task: Task<Player> ->
+                                    Log.i(
+                                        TAG,
+                                        "getCurrentPlayer successful playerId: ${task.result.playerId}"
+                                    )
+                                    this.onSignInSuccess(task.result.playerId)
+                                }
+                        } else {
+                            Log.i(TAG, "isReAuthenticated failed")
+                            emitSignal(SIGNAL_SIGN_IN_FAILED.name)
+                        }
                     }
                 }
             }
@@ -89,7 +90,9 @@ class PlayGameServicesGodot(godot: Godot?) : GodotPlugin(godot) {
     }
 
     private fun onSignInSuccess(playerId: String) {
-        emitSignal(SIGNAL_SIGN_IN_SUCCESSFUL.name, playerId)
+        runOnUiThread {
+            emitSignal(SIGNAL_SIGN_IN_SUCCESSFUL.name, playerId)
+        }
     }
 
 }
